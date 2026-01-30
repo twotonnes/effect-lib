@@ -10,5 +10,5 @@
       (cmd "ls")))
 
 (with-effect-handlers ([(nothing-effect) (abort 'nothing)]
-                       [(cmd-effect value) (handle-cmd value)])
+                       [(cmd-effect value) (execute-command value)])
   (program))

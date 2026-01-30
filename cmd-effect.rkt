@@ -3,7 +3,7 @@
 (provide
   cmd-effect
   cmd
-  handle-cmd)
+  execute-command)
 
 (require
   "eff-monad.rkt"
@@ -19,8 +19,8 @@
 (define (cmd value)
   (effect (cmd-effect value) (inst return Any)))
 
-(: handle-cmd (-> String (Eff Any)))
-(define (handle-cmd value)
+(: execute-command (-> String (Eff Any)))
+(define (execute-command value)
     (with-handlers ([exn:fail? (lambda (e)
                                 (begin
                                   (displayln (format "error running system command '~a': ~a" value e))
