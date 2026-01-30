@@ -10,6 +10,5 @@
 
 (with-effect-handlers ([(nothing-effect) (abort 'nothing)]
                        [(cmd-effect value) (execute-command value)]
-                       [(http-effect url method headers body)
-                        (perform-http-request (http-effect url method headers body))])
+                       )
   (program))

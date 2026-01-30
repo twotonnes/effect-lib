@@ -62,4 +62,8 @@
             #'(run (begin expr ...)
                    (lambda #:forall (A) ([eff : (Eff A)])
                      (match eff
-                       match-clause ...))))]))
+                       match-clause ...
+                       [_ (error (format "with-effect-handlers: encountered unhandled effect ~a"
+                                        (if (effect? eff)
+                                            (effect-description eff)
+                                            eff)))]))))]))
