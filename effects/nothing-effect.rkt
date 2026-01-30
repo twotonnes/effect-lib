@@ -5,7 +5,7 @@
   nothing)
 
 (require
-  "eff-monad.rkt")
+  "../eff-monad.rkt")
   
 (struct nothing-effect effect-desc ())
 

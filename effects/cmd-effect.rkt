@@ -6,7 +6,7 @@
   execute-command)
 
 (require
-  "eff-monad.rkt"
+  "../eff-monad.rkt"
   "nothing-effect.rkt")
 
 (struct cmd-effect effect-desc ([value : String]) #:transparent)

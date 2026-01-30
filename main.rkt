@@ -2,13 +2,14 @@
 
 (require
   "eff-monad.rkt"
-  "nothing-effect.rkt"
-  "cmd-effect.rkt")
+  "effects/main.rkt")
 
 (define (program)
     (do
-      (cmd "ls")))
+      (http-get "https://www.google.com" '())))
 
 (with-effect-handlers ([(nothing-effect) (abort 'nothing)]
-                       [(cmd-effect value) (execute-command value)])
+                       [(cmd-effect value) (execute-command value)]
+                       [(http-effect url method headers body)
+                        (perform-http-request (http-effect url method headers body))])
   (program))
