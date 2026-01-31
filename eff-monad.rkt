@@ -23,7 +23,6 @@
 ;; The Eff type is a simple union: either a pure value or an effect.
 (define-type (Eff A) (U (pure A) (effect A)))
 
-;; Lift a value into Eff via `pure`.
 (: return (All (A) (-> A (Eff A))))
 (define (return v) (pure v))
 
@@ -56,6 +55,8 @@
         ;; Binding case: (do [a <- m] rest ...)
         ;; Expands to (>>= m (lambda (a) (do rest ...)))
         ;; This allows sequencing with named results.
+        [(_ [a : type <- m] rest ...)
+         #'(>>= m (lambda ([a : type]) (do rest ...)))]
         [(_ [a <- m] rest ...)
          #'(>>= m (lambda (a) (do rest ...)))]
 
