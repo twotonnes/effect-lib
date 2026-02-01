@@ -2,8 +2,8 @@
 
 @(require
   scribble/eval
-  (for-label racket/match
-             "../../effects/cmd-effect.rkt"))
+  (for-label (rename-in racket [do r:do])
+             effect-lib))
 
 @(define cmd-eval (make-base-eval))
 @interaction-eval[#:eval cmd-eval (require effect-lib effect-lib/effects/cmd-effect racket/match)]

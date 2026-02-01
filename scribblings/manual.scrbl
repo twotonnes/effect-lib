@@ -1,6 +1,9 @@
 #lang scribble/manual
 
-@(require (for-label "../main.rkt"))
+@(require
+  scribble/eval
+  (for-label (rename-in racket [do r:do])
+             effect-lib))
 
 @title{Algebraic Effects}
 

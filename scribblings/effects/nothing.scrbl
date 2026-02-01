@@ -2,12 +2,11 @@
 
 @(require
   scribble/eval
-  (for-label racket/match
-             "../../main.rkt"
-             "../../effects/nothing-effect.rkt"))
+  (for-label (rename-in racket [do r:do])
+             effect-lib))
 
 @(define nothing-eval (make-base-eval))
-@interaction-eval[#:eval nothing-eval (require effect-lib effect-lib/effects/nothing-effect racket/match)]
+@interaction-eval[#:eval nothing-eval (require (rename-in racket [do racket:do]) effect-lib)]
 
 @title{The Nothing Effect}
 

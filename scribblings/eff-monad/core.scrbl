@@ -1,9 +1,9 @@
 #lang scribble/manual
 
 @(require
- scribble/eval
- (for-label racket/match
-            "../../main.rkt"))
+  scribble/eval
+  (for-label (rename-in racket [do r:do])
+             effect-lib))
 
 @(define effect-lib-eval (make-base-eval))
 @interaction-eval[#:eval effect-lib-eval (require effect-lib racket/match)]

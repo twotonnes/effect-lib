@@ -2,10 +2,9 @@
 
 @(require
   scribble/eval
-  (for-label net/url
-             racket/match
-             "../../main.rkt"
-             "../../effects/http-effect.rkt"))
+  (for-label (rename-in racket [do r:do])
+             net/url
+             effect-lib))
 
 @(define http-eval (make-base-eval))
 @interaction-eval[#:eval http-eval (require effect-lib effect-lib/effects/http-effect racket/match)]
