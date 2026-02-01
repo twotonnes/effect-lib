@@ -10,10 +10,10 @@
       "problemMatcher": []
     },
     {
-      "label": "Setup",
+      "label": "Install as Linked Package",
       "type": "shell",
       "command": "raco",
-      "args": ["setup", "effect-lib"],
+      "args": ["pkg", "install", "--auto", "--link"],
       "group": {
         "kind": "build",
         "isDefault": true
@@ -24,15 +24,17 @@
       "label": "Clean",
       "type": "shell",
       "command": "powershell",
-      "args": ["-Command", "Get-ChildItem -Path . -Filter 'compiled' -Directory -Recurse | Remove-Item -Recurse -Force"],
+      "args": ["-Command",
+      "Get-ChildItem -Path . -Filter 'compiled' -Directory -Recurse | Remove-Item -Recurse -Force;",
+      "Get-ChildItem -Path . -Filter 'doc' -Directory | Remove-Item -Recurse -Force"],
       "group": "build",
       "problemMatcher": []
     },
     {
-      "label": "Docs",
+      "label": "Build Docs",
       "type": "shell",
       "command": "raco",
-      "args": ["docs", "effect-lib"],
+      "args": ["scribble", "--htmls", "+m", "--redirect-main", "http://docs.racket-lang.org/", "scribblings/manual.scrbl"],
       "group": "build",
       "problemMatcher": []
     },
