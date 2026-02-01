@@ -12,3 +12,4 @@ This library implements a lightweight system for extensible algebraic effects. I
 
 @include-section["eff-monad/core.scrbl"]
 @include-section["eff-monad/syntax.scrbl"]
+@include-section["effects/overview.scrbl"]

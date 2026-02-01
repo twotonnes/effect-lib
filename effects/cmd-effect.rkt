@@ -3,6 +3,7 @@
 (provide
   (struct-out cmd-effect)
   (struct-out cmd-result)
+  (struct-out cmd-failure)
   cmd
   execute-command)
 
@@ -11,21 +12,23 @@
   racket/match
   racket/port
   racket/system
+  racket/exn
   "../eff-monad.rkt"
   "nothing-effect.rkt")
 
 (struct cmd-effect effect-desc (value) #:transparent)
 
 (struct cmd-result (out err exit-code) #:transparent)
+(struct cmd-failure (err) #:transparent)
 
 (define (cmd value)
   (effect (cmd-effect value) return))
 
+(define (fail err)
+  (effect (cmd-failure err) return))
+
 (define (execute-command value)
-    (with-handlers ([exn:fail? (lambda (e)
-                                (begin
-                                  (displayln (format "error running system command '~a': ~a" value e))
-                                  (nothing)))])
+    (with-handlers ([exn:fail? (lambda (e) (fail (format "error running system command '~a': ~a" value (exn->string e))))])
         (match-define (list stdout stdin _ stderr control)
           (process* (find-cmd-path) "-Command" value))
 
