@@ -16,7 +16,7 @@
   An effect descriptor representing the absence of a value or a specific "no-op" signal. 
 }
 
-@defproc[(nothing) effect?]{
+@defproc[(nothing) impure?]{
   Creates a nothing effect.
 
   @examples[#:eval nothing-eval
@@ -38,12 +38,12 @@ When handling this effect, it is common to either abort the computation or resum
 
 @examples[#:eval nothing-eval
   ;; Strategy 1: Recover with a default value (Resume)
-  (with-effect-handlers
+  (with-impure-handlers
     ([(nothing-effect) (return 0.0)]) ;; Treat failure as 0.0
     (calc-ratio 10 0))
 
   ;; Strategy 2: Abort the entire computation
-  (with-effect-handlers
+  (with-impure-handlers
     ([(nothing-effect) (abort "Calculation failed")])
     (calc-ratio 10 0))
 ]

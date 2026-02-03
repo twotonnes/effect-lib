@@ -43,7 +43,7 @@ To simplify the composition of effects and the definition of handlers, the libra
   ]
 }
 
-@defform[(with-effect-handlers (handler-clause ...) body ...)
+@defform[(with-impure-handlers (handler-clause ...) body ...)
          #:grammar ([handler-clause [pattern handler-body ...+]
                                     [pattern handler-body ... (abort result-expr)]])]{
   Runs the code in @racket[body ...] within a context that handles effects matching the provided patterns. This macro expands to a call to @racket[run].
@@ -68,7 +68,7 @@ To simplify the composition of effects and the definition of handlers, the libra
     (define (fail r) (effect (crash r) return))
 
     ;; A handler that handles logging (resumes) and crashing (aborts)
-    (with-effect-handlers
+    (with-impure-handlers
       ([(log m) 
         (displayln m)     ;; Side effect in the handler
         (return (void))]  ;; Resume computation with void

@@ -33,7 +33,7 @@ This module provides effects for executing shell commands and capturing their ou
   An effect descriptor representing a system failure that occurred while attempting to execute a command (e.g., executable not found, permission denied).
 }
 
-@defproc[(cmd [command string?]) effect?]{
+@defproc[(cmd [command string?]) impure?]{
   Creates an effect that requests the execution of @racket[command].
 
   @examples[#:eval cmd-eval
@@ -45,7 +45,7 @@ This module provides effects for executing shell commands and capturing their ou
   ]
 }
 
-@defproc[(execute-command [command string?]) (or/c pure? effect?)]{
+@defproc[(execute-command [command string?]) (or/c pure? impure?)]{
   The default implementation for executing commands. It attempts to run the @racket[command] string using the system's shell (specifically targeting PowerShell on Windows environments).
   
   @itemlist[
@@ -56,10 +56,10 @@ This module provides effects for executing shell commands and capturing their ou
   Because this function can produce a @racket[cmd-failure] effect, any handler that uses it must also be prepared to handle (or bubble up) @racket[cmd-failure].
 
   @examples[#:eval cmd-eval
-    (with-effect-handlers ([(cmd-effect c) (execute-command c)]
-                           [(cmd-failure err)
-                            (displayln (format "Command failed: ~a" err) (current-error-port))
-                            (abort (void))])
+    (with-impure-handlers ([(cmd-effect c) (execute-command c)]
+                            [(cmd-failure err)
+                             (displayln (format "Command failed: ~a" err) (current-error-port))
+                             (abort (void))])
       (check-status))
   ]
 }

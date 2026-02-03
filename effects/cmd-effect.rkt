@@ -13,7 +13,7 @@
   racket/port
   racket/system
   racket/exn 
-  "../eff-monad.rkt"
+  "../freer-monad.rkt"
   "nothing-effect.rkt")
 
 (struct cmd-effect (value) #:transparent)
@@ -22,10 +22,10 @@
 (struct cmd-failure (err) #:transparent)
 
 (define (cmd value)
-  (effect (cmd-effect value) return))
+  (perform (cmd-effect value)))
 
 (define (fail err)
-  (effect (cmd-failure err) return))
+  (perform (cmd-failure err)))
 
 (define (execute-command value)
     (with-handlers ([exn:fail? (lambda (e) (fail (format "error running system command '~a': ~a" value (exn->string e))))])

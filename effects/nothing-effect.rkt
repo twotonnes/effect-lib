@@ -5,9 +5,9 @@
   nothing)
 
 (require
-  "../eff-monad.rkt")
+  "../freer-monad.rkt")
   
 (struct nothing-effect ())
 
 (define (nothing)
-  (effect (nothing-effect) return))
+  (perform (nothing-effect)))

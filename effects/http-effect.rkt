@@ -13,24 +13,24 @@
     net/url
     racket/match
     racket/port
-    "../eff-monad.rkt")
+    "../freer-monad.rkt")
   
 (struct http-effect (url method headers body) #:transparent)
 
 (define (http-get url headers)
-  (effect (http-effect (string->url url) 'GET headers #f) return))
+  (perform (http-effect (string->url url) 'GET headers #f)))
 
 (define (http-post url headers body)
-  (effect (http-effect (string->url url) 'POST headers body) return))
+  (perform (http-effect (string->url url) 'POST headers body)))
 
 (define (http-put url headers body)
-  (effect (http-effect (string->url url) 'PUT headers body) return))
+  (perform (http-effect (string->url url) 'PUT headers body)))
 
 (define (http-patch url headers body)
-  (effect (http-effect (string->url url) 'PATCH headers body) return))
+  (perform (http-effect (string->url url) 'PATCH headers body)))
 
 (define (http-delete url headers)
-  (effect (http-effect (string->url url) 'DELETE headers #f) return))
+  (perform (http-effect (string->url url) 'DELETE headers #f)))
 
 (define (perform-http-request req)
     (define-values (status-line headers-bytes body-port)

@@ -23,7 +23,7 @@ This module provides effects for performing HTTP network requests.
   The descriptor containing all necessary information to perform a request.
 }
 
-@defproc[(http-get [url string?] [headers (listof string?)]) effect?]{
+@defproc[(http-get [url string?] [headers (listof string?)]) impure?]{
   Creates a GET request effect.
 
   @examples[#:eval http-eval
@@ -35,23 +35,23 @@ This module provides effects for performing HTTP network requests.
   ]
 }
 
-@defproc[(http-post [url string?] [headers (listof string?)] [body (or/c bytes? string?)]) effect?]{
+@defproc[(http-post [url string?] [headers (listof string?)] [body (or/c bytes? string?)]) impure?]{
   Creates a POST request effect.
 }
 
-@defproc[(http-put [url string?] [headers (listof string?)] [body (or/c bytes? string?)]) effect?]{
+@defproc[(http-put [url string?] [headers (listof string?)] [body (or/c bytes? string?)]) impure?]{
   Creates a PUT request effect.
 }
 
-@defproc[(http-patch [url string?] [headers (listof string?)] [body (or/c bytes? string?)]) effect?]{
+@defproc[(http-patch [url string?] [headers (listof string?)] [body (or/c bytes? string?)]) impure?]{
   Creates a PATCH request effect.
 }
 
-@defproc[(http-delete [url string?] [headers (listof string?)]) effect?]{
+@defproc[(http-delete [url string?] [headers (listof string?)]) impure?]{
   Creates a DELETE request effect.
 }
 
-@defproc[(perform-http-request [eff http-effect?]) effect?]{
+@defproc[(perform-http-request [eff http-effect?]) impure?]{
   The default handler implementation using Racket's @racket[net/url] library.
   
   It resumes the computation with a list containing:
@@ -66,7 +66,7 @@ This module provides effects for performing HTTP network requests.
   @examples[#:eval http-eval
     ;; Mocking the HTTP handler ensures documentation builds do not 
     ;; require internet access and behave deterministically.
-    (with-effect-handlers ([(http-effect url method headers body)
+    (with-impure-handlers ([(http-effect url method headers body)
                             ;; Return a fake 200 OK response
                             (return (list 200 '("Content-Type: text/html") "<html>Mock Body</html>"))])
       (fetch-home))

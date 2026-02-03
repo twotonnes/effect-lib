@@ -24,7 +24,7 @@ To understand how these standard effects work, consider the simplest one: the Id
   A descriptor that simply holds a value.
 }
 
-@defproc[(id [v any/c]) effect?]{
+@defproc[(id [v any/c]) impure?]{
   Constructs an effect that wraps @racket[v].
 }
 
@@ -37,7 +37,7 @@ When you use @racket[id], you are effectively pausing the computation to hand a 
         (return (+ x y))))
 
   ;; A handler that simply unwraps the ID and returns the value
-  (with-effect-handlers
+  (with-impure-handlers
     ([(id-effect v) (return v)])
     computation)
 ]

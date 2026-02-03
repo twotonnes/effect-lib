@@ -1,9 +1,9 @@
 #lang racket
 
 (provide
-  (all-from-out "eff-monad.rkt")
+  (all-from-out "freer-monad.rkt")
   (all-from-out "effects/main.rkt"))
 
 (require
-  "eff-monad.rkt"
+  "freer-monad.rkt"
   "effects/main.rkt")

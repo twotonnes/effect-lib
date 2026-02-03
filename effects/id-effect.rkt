@@ -4,9 +4,9 @@
   (struct-out id-effect)
   id)
 
-(require "../eff-monad.rkt")
+(require "../freer-monad.rkt")
 
 (struct id-effect (value) #:transparent)
 
 (define (id v)
-    (effect (id-effect v) return))
+    (perform (id-effect v)))
