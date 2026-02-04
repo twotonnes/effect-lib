@@ -3,11 +3,11 @@
 @(require
   scribble/eval
   (for-label (rename-in racket [do r:do])
-             effect-lib))
+             freer-lib))
 
 @title{Algebraic Effects}
 
-@defmodule[effect-lib]
+@defmodule[freer-lib]
 
 This library implements a lightweight system for extensible algebraic effects. It allows computations to perform effectful operations that are decoupled from their implementations. The system is built around a free monad structure where computations are represented as sequences of suspended effects.
 

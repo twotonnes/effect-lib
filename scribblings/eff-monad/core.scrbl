@@ -3,10 +3,10 @@
 @(require
   scribble/eval
   (for-label (rename-in racket [do r:do])
-             effect-lib))
+             freer-lib))
 
-@(define effect-lib-eval (make-base-eval))
-@interaction-eval[#:eval effect-lib-eval (require effect-lib racket/match)]
+@(define freer-lib-eval (make-base-eval))
+@interaction-eval[#:eval freer-lib-eval (require freer-lib racket/match)]
 
 @title{Core Effects API}
 
@@ -28,7 +28,7 @@ The core API defines the structure of effectful computations and the machinery t
 @defproc[(return [v any/c]) pure?]{
   Lifts a raw value @racket[v] into the effect context. This is equivalent to constructing @racket[(pure v)].
 
-  @examples[#:eval effect-lib-eval
+  @examples[#:eval freer-lib-eval
     (return 42)
   ]
 }
@@ -44,7 +44,7 @@ The core API defines the structure of effectful computations and the machinery t
   
   If @racket[m] is a @racket[pure] value, @racket[f] is applied immediately. If @racket[m] is an @racket[impure], the binding is pushed down into the continuation @racket[k], creating a new computation that pauses for the same effect but runs @racket[f] after the original continuation completes.
 
-  @examples[#:eval effect-lib-eval
+  @examples[#:eval freer-lib-eval
     (struct increment ())
     
     ;; Manually chain a pure value into an impure computation
@@ -61,7 +61,7 @@ The core API defines the structure of effectful computations and the machinery t
   
   When @racket[run] encounters a @racket[pure] value, it returns the unwrapped value. When it encounters an @racket[impure], it passes the impure computation to @racket[handle]. The handler is expected to resume the computation (usually by invoking the continuation inside the impure), returning a new state that @racket[run] will continue to process.
 
-  @examples[#:eval effect-lib-eval
+  @examples[#:eval freer-lib-eval
     (struct read-env (var-name))
     
     ;; A computation that asks for an environment variable

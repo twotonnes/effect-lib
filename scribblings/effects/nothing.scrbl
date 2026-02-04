@@ -3,14 +3,14 @@
 @(require
   scribble/eval
   (for-label (rename-in racket [do r:do])
-             effect-lib))
+             freer-lib))
 
 @(define nothing-eval (make-base-eval))
-@interaction-eval[#:eval nothing-eval (require (rename-in racket [do racket:do]) effect-lib)]
+@interaction-eval[#:eval nothing-eval (require (rename-in racket [do racket:do]) freer-lib)]
 
 @title{The Nothing Effect}
 
-@defmodule[effect-lib/effects/nothing-effect]
+@defmodule[freer-lib/effects/nothing-effect]
 
 @defstruct[nothing-effect () #:transparent]{
   An effect descriptor representing the absence of a value or a specific "no-op" signal. 

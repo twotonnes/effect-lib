@@ -3,10 +3,10 @@
 @(require
   scribble/eval
   (for-label (rename-in racket [do r:do])
-             effect-lib))
+             freer-lib))
 
-@(define effect-lib-eval (make-base-eval))
-@interaction-eval[#:eval effect-lib-eval (require effect-lib racket/match)]
+@(define freer-lib-eval (make-base-eval))
+@interaction-eval[#:eval freer-lib-eval (require freer-lib racket/match)]
 
 @title{Syntactic Forms}
 
@@ -24,7 +24,7 @@ To simplify the composition of effects and the definition of handlers, the libra
   
   The final expression in the sequence dictates the return value of the whole @racket[do] block.
 
-  @examples[#:eval effect-lib-eval
+  @examples[#:eval freer-lib-eval
     ;; Define a basic "Ask" effect
     (struct ask (question))
     (define (ask-user q) (effect (ask q) return))
@@ -60,7 +60,7 @@ To simplify the composition of effects and the definition of handlers, the libra
 
   If an effect is raised that does not match any clause, an error is raised.
 
-  @examples[#:eval effect-lib-eval
+  @examples[#:eval freer-lib-eval
     (struct log (message))
     (struct crash (reason))
 

@@ -3,14 +3,14 @@
 @(require
   scribble/eval
   (for-label (rename-in racket [do r:do])
-             effect-lib))
+             freer-lib))
 
 @(define cmd-eval (make-base-eval))
-@interaction-eval[#:eval cmd-eval (require effect-lib effect-lib/effects/cmd-effect racket/match)]
+@interaction-eval[#:eval cmd-eval (require freer-lib freer-lib/effects/cmd-effect racket/match)]
 
 @title{System Commands}
 
-@defmodule[effect-lib/effects/cmd-effect]
+@defmodule[freer-lib/effects/cmd-effect]
 
 This module provides effects for executing shell commands and capturing their output.
 

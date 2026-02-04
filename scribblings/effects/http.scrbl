@@ -4,14 +4,14 @@
   scribble/eval
   (for-label (rename-in racket [do r:do])
              net/url
-             effect-lib))
+             freer-lib))
 
 @(define http-eval (make-base-eval))
-@interaction-eval[#:eval http-eval (require effect-lib effect-lib/effects/http-effect racket/match)]
+@interaction-eval[#:eval http-eval (require freer-lib freer-lib/effects/http-effect racket/match)]
 
 @title{HTTP Requests}
 
-@defmodule[effect-lib/effects/http-effect]
+@defmodule[freer-lib/effects/http-effect]
 
 This module provides effects for performing HTTP network requests.
 

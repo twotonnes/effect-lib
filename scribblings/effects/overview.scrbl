@@ -3,10 +3,10 @@
 @(require
   scribble/eval
   (for-label (rename-in racket [do r:do])
-             effect-lib))
+             freer-lib))
 
 @(define std-eval (make-base-eval))
-@interaction-eval[#:eval std-eval (require racket effect-lib)]
+@interaction-eval[#:eval std-eval (require racket freer-lib)]
 
 @title{Standard Effects}
 
@@ -18,7 +18,7 @@ These effects come with companion **default handlers**. You are not required to 
 
 To understand how these standard effects work, consider the simplest one: the Identity effect.
 
-@defmodule[effect-lib/effects/id-effect]
+@defmodule[freer-lib/effects/id-effect]
 
 @defstruct[id-effect ([value any/c]) #:transparent]{
   A descriptor that simply holds a value.
