@@ -25,6 +25,16 @@ The core API defines the structure of effectful computations and the machinery t
   ]
 }
 
+@defproc[(free? [m any/c]) boolean?]{
+  Returns @racket[#t] if @racket[m] is either a @racket[pure] or @racket[impure] value, @racket[#f] otherwise. This is a type-checking predicate for the free monad.
+
+  @examples[#:eval freer-lib-eval
+    (free? (return 42))
+    (free? (perform 'effect))
+    (free? 42)
+  ]
+}
+
 @defproc[(return [v any/c]) pure?]{
   Lifts a raw value @racket[v] into the effect context. This is equivalent to constructing @racket[(pure v)].
 
@@ -33,12 +43,17 @@ The core API defines the structure of effectful computations and the machinery t
   ]
 }
 
-@defproc[(perform [eff impure?]) any/c]{
-  Executes the effect @racket[eff] by invoking its continuation @racket[k] with the result. This is typically used internally by effect handlers to resume the computation after handling an effect.
+@defproc[(perform [desc any/c]) impure?]{
+  Creates an impure effect descriptor. It takes a description @racket[desc] and wraps it in an @racket[impure] structure with the @racket[return] function as the default continuation. This is used to request an effect that should be handled by an effect handler.
+
+  @examples[#:eval freer-lib-eval
+    (perform 'read-value)
+    (perform (list 'http-get "http://example.com"))
+  ]
 }
 
 @defproc[(>>= [m (or/c pure? impure?)]
-               [f (-> any/c (or/c pure? impure?))])
+              [f (-> any/c (or/c pure? impure?))])
          (or/c pure? impure?)]{
   Sequences two effectful computations. It applies the function @racket[f] to the result of @racket[m] once @racket[m] produces a value.
   
@@ -55,25 +70,25 @@ The core API defines the structure of effectful computations and the machinery t
 }
 
 @defproc[(run [m (or/c pure? impure?)]
-              [handle (-> impure? (or/c pure? impure?))])
+              [handle (-> any/c (-> any/c (or/c pure? impure?)) (or/c pure? impure?))])
          any/c]{
   Executes an effectful computation @racket[m] by repeatedly resolving effects using the provided @racket[handle] function.
   
-  When @racket[run] encounters a @racket[pure] value, it returns the unwrapped value. When it encounters an @racket[impure], it passes the impure computation to @racket[handle]. The handler is expected to resume the computation (usually by invoking the continuation inside the impure), returning a new state that @racket[run] will continue to process.
+  When @racket[run] encounters a @racket[pure] value, it returns the unwrapped value. When it encounters an @racket[impure], it extracts the effect description and continuation, then passes them to @racket[handle] as separate arguments. The handler can process the effect and resume the computation by calling the continuation @racket[k], or it can return a new computation to continue execution.
 
   @examples[#:eval freer-lib-eval
     (struct read-env (var-name))
     
     ;; A computation that asks for an environment variable
     (define my-computation
-      (impure (read-env "HOME") 
-              (lambda (path) (return (string-append "Home is: " path)))))
+      (do [path <- (perform (read-env "HOME"))]
+          (return (string-append "Home is: " path))))
     
-    ;; Running the computation with a manual handler function
+    ;; Running the computation with a handler
     (run my-computation
-         (lambda (eff)
+         (lambda (eff k)
            (match eff
-             [(impure (read-env var) k)
+             [(read-env var)
               ;; Resume the continuation 'k' with a simulated value
               (k "/usr/home/racket-user")])))
   ]

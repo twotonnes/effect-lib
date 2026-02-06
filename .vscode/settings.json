@@ -1,3 +1,4 @@
 {
-    "makefile.makefilePath": "makefile"
+    "makefile.makefilePath": "makefile",
+    "makefile.configureOnOpen": false
 }

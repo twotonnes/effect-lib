@@ -13,40 +13,47 @@
     net/url
     racket/match
     racket/port
+    racket/contract
     "../freer-monad.rkt")
   
-(struct http-effect (url method headers body) #:transparent)
+(struct http-effect (url method headers data) #:transparent)
 
-(define (http-get url headers)
+(define/contract (http-get url headers)
+  (-> string? (listof string?) free?)
   (perform (http-effect (string->url url) 'GET headers #f)))
 
-(define (http-post url headers body)
-  (perform (http-effect (string->url url) 'POST headers body)))
+(define/contract (http-post url headers data)
+  (-> string? (listof string?) (or/c bytes? string?) free?)
+  (perform (http-effect (string->url url) 'POST headers data)))
 
-(define (http-put url headers body)
-  (perform (http-effect (string->url url) 'PUT headers body)))
+(define/contract (http-put url headers data)
+  (-> string? (listof string?) (or/c bytes? string?) free?)
+  (perform (http-effect (string->url url) 'PUT headers data)))
 
-(define (http-patch url headers body)
-  (perform (http-effect (string->url url) 'PATCH headers body)))
+(define/contract (http-patch url headers data)
+  (-> string? (listof string?) (or/c bytes? string?) free?)
+  (perform (http-effect (string->url url) 'PATCH headers data)))
 
-(define (http-delete url headers)
+(define/contract (http-delete url headers)
+  (-> string? (listof string?) free?)
   (perform (http-effect (string->url url) 'DELETE headers #f)))
 
-(define (perform-http-request req)
-    (define-values (status-line headers-bytes body-port)
-      (match req
-        [(http-effect url method headers body)
-         (http-sendrecv/url url #:method method #:headers headers #:data body)]))
+(define/contract (perform-http-request req)
+  (-> http-effect? (list/c number? (listof string?) string?))
+  (define-values (status-line headers-bytes data-port)
+    (match req
+      [(http-effect url method headers data)
+        (http-sendrecv/url url #:method method #:headers headers #:data data)]))
 
-    (define status
-      (match (regexp-match #px"HTTP/.+ ([0-9]{3})"
-                           (bytes->string/utf-8 status-line))
-        [(list _ (? string? status)) (string->number status)]))
+  (define status
+    (match (regexp-match #px"HTTP/.+ ([0-9]{3})"
+                          (bytes->string/utf-8 status-line))
+      [(list _ (? string? status)) (string->number status)]))
 
-    (define headers
-      (map bytes->string/utf-8 headers-bytes))
+  (define headers
+    (map bytes->string/utf-8 headers-bytes))
 
-    (define body
-      (port->string body-port))
-    
-    (return (list status headers body)))
+  (define data
+    (port->string data-port))
+  
+  (return (list status headers data)))

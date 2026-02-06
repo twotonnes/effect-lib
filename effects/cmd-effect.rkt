@@ -12,7 +12,8 @@
   racket/match
   racket/port
   racket/system
-  racket/exn 
+  racket/exn
+  racket/contract
   "../freer-monad.rkt"
   "nothing-effect.rkt")
 
@@ -21,32 +22,36 @@
 (struct cmd-result (out err exit-code) #:transparent)
 (struct cmd-failure (err) #:transparent)
 
-(define (cmd value)
+(define/contract (cmd value)
+  (-> any/c free?)
   (perform (cmd-effect value)))
 
-(define (fail err)
+(define/contract (fail err)
+  (-> string? free?)
   (perform (cmd-failure err)))
 
-(define (execute-command value)
-    (with-handlers ([exn:fail? (lambda (e) (fail (format "error running system command '~a': ~a" value (exn->string e))))])
-        (match-define (list stdout stdin _ stderr control)
-          (process* (find-cmd-path) "-Command" value))
+(define/contract (execute-command value)
+  (-> string? free?)
+  (with-handlers ([exn:fail? (lambda (e) (fail (format "error running system command '~a': ~a" value (exn->string e))))])
+      (match-define (list stdout stdin _ stderr control)
+        (process* (find-cmd-path) "-Command" value))
 
-        (define out (port->string stdout))
-        (define err (port->string stderr))
+      (define out (port->string stdout))
+      (define err (port->string stderr))
 
-        (close-input-port stdout)
-        (close-input-port stderr)
-        (close-output-port stdin)
+      (close-input-port stdout)
+      (close-input-port stderr)
+      (close-output-port stdin)
 
-        (control 'wait)
-        (define exit-code (control 'exit-code))
+      (control 'wait)
+      (define exit-code (control 'exit-code))
 
-        (if (false? exit-code)
-            (error "command returned #f as exit code")
-            (return (cmd-result out err exit-code)))))
+      (if (false? exit-code)
+          (error "command returned #f as exit code")
+          (return (cmd-result out err exit-code)))))
 
-(define (find-cmd-path)
+(define/contract (find-cmd-path)
+  (-> path?)
   (define cmd-name "powershell.exe")
   (define cmd-path (find-executable-path cmd-name))
   (if (false? cmd-path)

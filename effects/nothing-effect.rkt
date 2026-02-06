@@ -5,9 +5,11 @@
   nothing)
 
 (require
+  racket/contract
   "../freer-monad.rkt")
   
 (struct nothing-effect ())
 
-(define (nothing)
+(define/contract (nothing)
+  (-> free?)
   (perform (nothing-effect)))

@@ -4,15 +4,16 @@
 (provide
   pure
   impure
+  free?
   return
   perform
   run
   >>=
-  do
-  with-impure-handlers)
+  do)
 
 
 (require racket/match
+         racket/contract
          (for-syntax racket/base))
 
 (module+ test
@@ -26,12 +27,17 @@
 (struct pure (value) #:transparent)
 (struct impure (description k) #:transparent)
 
+(define (free? m)
+  (or (pure? m) (impure? m)))
+
 
 ;; ============================================================
 ;; return
 ;; ============================================================
 
-(define (return v) (pure v))
+(define/contract (return v)
+  (-> any/c pure?)
+  (pure v))
 
 (module+ test
   (test-case "return creates pure value"
@@ -43,8 +49,9 @@
 ;; perform
 ;; ============================================================
 
-(define (perform desc)
-    (impure desc return))
+(define/contract (perform desc)
+  (-> any/c impure?)
+  (impure desc return))
 
 (module+ test
   (test-case "perform creates impure effect"
@@ -61,11 +68,12 @@
 ;; bind (>>=)
 ;; ============================================================
 
-(define (bind m f)
-    (match m
-        [(pure v) (f v)]
-        [(impure desc k)
-         (impure desc (lambda (x) (bind (k x) f)))]))
+(define/contract (bind m f)
+  (-> free? (-> any/c free?) free?)
+  (match m
+      [(pure v) (f v)]
+      [(impure desc k)
+        (impure desc (lambda (x) (bind (k x) f)))]))
 
 (define >>= bind)
 
@@ -95,24 +103,25 @@
 ;; run
 ;; ============================================================
 
-(define (run m handle)
-    (match m
-        [(pure value) value]
-        [(impure desc k) (run (handle (impure desc k)) handle)]))
+(define/contract (run m handle)
+  (-> free? (-> any/c (-> any/c free?) free?) any/c)
+  (match m
+      [(pure value) value]
+      [(impure desc k) (run (handle desc k) handle)]))
 
 (module+ test
   (test-case "run executes pure computation immediately"
     (define result
       (run (return 100)
-           (lambda (eff) (error "handler should not be called"))))
+           (lambda (eff k) (error "handler should not be called"))))
     (check-equal? result 100))
   
   (test-case "run invokes handler on impure effects"
     (define result
       (run (perform 'get-value)
-           (lambda (eff)
+           (lambda (eff k)
              (match eff
-               [(impure 'get-value k) (k 42)]))))
+               ['get-value (k 42)]))))
     (check-equal? result 42))
   
   (test-case "run handles multiple effects in sequence"
@@ -121,10 +130,10 @@
                 (lambda (x)
                   (>>= (perform 'get-y)
                        (lambda (y) (return (+ x y))))))
-           (lambda (eff)
-             (match (impure-description eff)
-               ['get-x ((impure-k eff) 10)]
-               ['get-y ((impure-k eff) 20)]))))
+           (lambda (eff k)
+             (match eff
+               ['get-x (k 10)]
+               ['get-y (k 20)]))))
     (check-equal? result 30)))
 
 
@@ -180,80 +189,7 @@
     (define result
       (run (do [x <- (perform 'get)]
                (return (* x 2)))
-           (lambda (eff)
+           (lambda (eff k)
              (match eff
-               [(impure 'get k) (k 21)]))))
+               ['get (k 21)]))))
     (check-equal? result 42)))
-
-
-;; ============================================================
-;; with-impure-handlers
-;; ============================================================
-
-;; Macro for pattern-matching handlers for performing request contained in 'impure' nodes.
-;; Handler clauses with `abort` short-circuit to a pure result; otherwise the body is
-;; sequenced and the continuation `k` is invoked via `>>=`.
-(define-syntax (with-impure-handlers stx)
-    (syntax-case stx (abort)
-        [(_ (clause ...) expr ...)
-         (with-syntax ([(match-clause ...)
-                        (map (lambda (c)
-                                (syntax-case c (abort)
-                                    ;; Abort: return pure result without invoking `k`.
-                                    [(pattern body ... (abort result))
-                                     #'[(impure pattern k) body ... (return result)]]
-                                    ;; Continue: sequence body and pass result to `k` via `>>=`.
-                                    [(pattern body ...)
-                                     #'[(impure pattern k) (>>= (begin body ...) k)]]))
-                            (syntax->list #'(clause ...)))])
-            #'(run (begin expr ...)
-                   (lambda (eff)
-                     (match eff
-                       match-clause ...
-                       ;; No handler matched: error with impure description.
-                       [_ (error (format "with-impure-handlers: encountered unhandled impure ~a"
-                                        (if (impure? eff)
-                                            (impure-description eff)
-                                            eff)))]))))]))
-
-(module+ test
-  (test-case "with-impure-handlers handles single effect"
-    (define result
-      (with-impure-handlers
-        (['get-name (return "Alice")])
-        (perform 'get-name)))
-    (check-equal? result "Alice"))
-  
-  (test-case "with-impure-handlers with continuation"
-    (define result
-      (with-impure-handlers
-        ([x (return (+ x 10))])
-        (do [result <- (perform 5)]
-            (return (* result 2)))))
-    (check-equal? result 30))
-  
-  (test-case "with-impure-handlers with abort"
-    (define result
-      (with-impure-handlers
-        (['should-abort (abort 'aborted)])
-        (do (perform 'should-abort)
-            (return 'should-not-reach-here))))
-    (check-equal? result 'aborted))
-  
-  (test-case "with-impure-handlers distinguishes multiple effects"
-    (define result
-      (with-impure-handlers
-        ([(list 'read) (return 100)]
-         [(list 'write x) (return (void))])
-        (do [val <- (perform (list 'read))]
-            (perform (list 'write val))
-            (return val))))
-    (check-equal? result 100))
-  
-  (test-case "with-impure-handlers raises error for unhandled effect"
-    (check-exn
-     #rx"unhandled impure"
-     (lambda ()
-       (with-impure-handlers
-         (['handled-effect (return 'ok)])
-         (perform 'unhandled-effect))))))

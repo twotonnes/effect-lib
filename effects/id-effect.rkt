@@ -4,9 +4,12 @@
   (struct-out id-effect)
   id)
 
-(require "../freer-monad.rkt")
+(require
+  racket/contract
+  "../freer-monad.rkt")
 
 (struct id-effect (value) #:transparent)
 
-(define (id v)
-    (perform (id-effect v)))
+(define/contract (id v)
+  (-> any/c free?)
+  (perform (id-effect v)))
