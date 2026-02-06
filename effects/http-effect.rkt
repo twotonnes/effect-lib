@@ -13,8 +13,10 @@
     net/url
     racket/match
     racket/port
+    racket/exn
     racket/contract
-    "../freer-monad.rkt")
+    "../freer-monad.rkt"
+    "fail-effect.rkt")
   
 (struct http-effect (url method headers data) #:transparent)
 
@@ -40,20 +42,21 @@
 
 (define/contract (perform-http-request req)
   (-> http-effect? (list/c number? (listof string?) string?))
-  (define-values (status-line headers-bytes data-port)
-    (match req
-      [(http-effect url method headers data)
-        (http-sendrecv/url url #:method method #:headers headers #:data data)]))
+  (with-handlers ([exn:fail? (lambda (exn) (fail (format "error performing http request '~a': ~a" req (exn->string exn))))])
+    (define-values (status-line headers-bytes data-port)
+      (match req
+        [(http-effect url method headers data)
+          (http-sendrecv/url url #:method method #:headers headers #:data data)]))
 
-  (define status
-    (match (regexp-match #px"HTTP/.+ ([0-9]{3})"
-                          (bytes->string/utf-8 status-line))
-      [(list _ (? string? status)) (string->number status)]))
+    (define status
+      (match (regexp-match #px"HTTP/.+ ([0-9]{3})"
+                            (bytes->string/utf-8 status-line))
+        [(list _ (? string? status)) (string->number status)]))
 
-  (define headers
-    (map bytes->string/utf-8 headers-bytes))
+    (define headers
+      (map bytes->string/utf-8 headers-bytes))
 
-  (define data
-    (port->string data-port))
-  
-  (return (list status headers data)))
+    (define data
+      (port->string data-port))
+
+    (return (list status headers data))))

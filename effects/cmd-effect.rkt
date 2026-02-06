@@ -3,7 +3,6 @@
 (provide
   (struct-out cmd-effect)
   (struct-out cmd-result)
-  (struct-out cmd-failure)
   cmd
   execute-command)
 
@@ -15,20 +14,15 @@
   racket/exn
   racket/contract
   "../freer-monad.rkt"
-  "nothing-effect.rkt")
+  "fail-effect.rkt")
 
 (struct cmd-effect (value) #:transparent)
 
 (struct cmd-result (out err exit-code) #:transparent)
-(struct cmd-failure (err) #:transparent)
 
 (define/contract (cmd value)
   (-> any/c free?)
   (perform (cmd-effect value)))
-
-(define/contract (fail err)
-  (-> string? free?)
-  (perform (cmd-failure err)))
 
 (define/contract (execute-command value)
   (-> string? free?)

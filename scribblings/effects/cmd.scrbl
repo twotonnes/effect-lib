@@ -29,10 +29,6 @@ This module provides effects for executing shell commands and capturing their ou
   ]
 }
 
-@defstruct[cmd-failure ([err string?]) #:transparent]{
-  An effect descriptor representing a system failure that occurred while attempting to execute a command (e.g., executable not found, permission denied).
-}
-
 @defproc[(cmd [command string?]) impure?]{
   Creates an effect that requests the execution of @racket[command].
 
@@ -50,16 +46,18 @@ This module provides effects for executing shell commands and capturing their ou
   
   @itemlist[
     @item{@emph{Success}: Returns a @racket[pure] value containing a @racket[cmd-result].}
-    @item{@emph{Failure}: If a Racket exception occurs during execution (such as the shell not being found), this function catches the exception and returns a new @racket[cmd-failure] effect containing the error message.}
+    @item{@emph{Failure}: If a Racket exception occurs during execution (such as the shell not being found), this function catches the exception and uses the @racket[fail] effect to propagate the error message.}
   ]
 
-  Because this function can produce a @racket[cmd-failure] effect, any handler that uses it must also be prepared to handle (or bubble up) @racket[cmd-failure].
+  @bold{Error Handling}: When @racket[execute-command] encounters an error (e.g., shell not found, permission denied), it uses the @racket[fail-effect] to signal the error. Your computation handler must be prepared to handle the @racket[fail-effect].
 
   @examples[#:eval cmd-eval
-    (with-impure-handlers ([(cmd-effect c) (execute-command c)]
-                            [(cmd-failure err)
-                             (displayln (format "Command failed: ~a" err) (current-error-port))
-                             (abort (void))])
-      (check-status))
+    (run (check-status)
+         (lambda (eff k)
+           (match eff
+             [(cmd-effect c) (k (execute-command c))]
+             [(fail-effect msg)
+              (displayln (format "Command error: ~a" msg) (current-error-port))
+              (return (void))])))
   ]
 }
