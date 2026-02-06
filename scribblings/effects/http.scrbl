@@ -51,10 +51,10 @@ This module provides effects for performing HTTP network requests.
   Creates a DELETE request effect.
 }
 
-@defproc[(perform-http-request [eff http-effect?]) impure?]{
+@defproc[(perform-http-request [eff http-effect?]) (list/c number? (listof string?) string?)]{
   The default handler implementation using Racket's @racket[net/url] library.
   
-  It resumes the computation with a list containing:
+  It returns a list containing:
   @racketblock['(status-code headers-list body-string)]
   
   @itemlist[
@@ -63,7 +63,7 @@ This module provides effects for performing HTTP network requests.
     @item{@racket[body-string]: The response body.}
   ]
 
-  @bold{Error Handling}: If an exception occurs during the HTTP request (e.g., network error, malformed URL, connection timeout), @racket[perform-http-request] catches the exception and uses the @racket[fail] effect to propagate the error message. This allows network errors to be handled gracefully within your computation.
+  If an error occurs during the HTTP request (e.g., network error, malformed URL, connection timeout), an exception is raised.
 
   @examples[#:eval http-eval
     ;; Mocking the HTTP handler ensures documentation builds do not 
@@ -73,10 +73,6 @@ This module provides effects for performing HTTP network requests.
            (match eff
              [(http-effect url method headers body)
               ;; Return a fake 200 OK response
-              (k (list 200 '("Content-Type: text/html") "<html>Mock Body</html>"))]
-             [(fail-effect msg)
-              ;; Handle network errors gracefully
-              (displayln (format "Network error: ~a" msg) (current-error-port))
-              (return (list 0 '() ""))])))
+              (k (list 200 '("Content-Type: text/html") "<html>Mock Body</html>"))])))
   ]
 }

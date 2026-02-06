@@ -15,8 +15,7 @@
     racket/port
     racket/exn
     racket/contract
-    "../freer-monad.rkt"
-    "fail-effect.rkt")
+    "../freer-monad.rkt")
   
 (struct http-effect (url method headers data) #:transparent)
 
@@ -42,7 +41,7 @@
 
 (define/contract (perform-http-request req)
   (-> http-effect? (list/c number? (listof string?) string?))
-  (with-handlers ([exn:fail? (lambda (exn) (fail (format "error performing http request '~a': ~a" req (exn->string exn))))])
+  (with-handlers ([exn:fail? (lambda (exn) (error (format "error performing http request '~a': ~a" req (exn->string exn))))])
     (define-values (status-line headers-bytes data-port)
       (match req
         [(http-effect url method headers data)
@@ -59,4 +58,4 @@
     (define data
       (port->string data-port))
 
-    (return (list status headers data))))
+    (list status headers data)))

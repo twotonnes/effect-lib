@@ -6,7 +6,7 @@
              freer-lib))
 
 @(define log-eval (make-base-eval))
-@interaction-eval[#:eval log-eval (require freer-lib freer-lib/effects/log-effect freer-lib/effects/fail-effect racket/match)]
+@interaction-eval[#:eval log-eval (require freer-lib freer-lib/effects/log-effect racket/match)]
 
 @title{Logging}
 
@@ -59,34 +59,24 @@ This module provides effects for logging messages at different severity levels.
   The default handler for displaying log messages. Routes ERROR level messages to @racket[current-error-port] and other levels to @racket[current-output-port]. Automatically formats messages using @racket[default-log-format] and flushes the output.
 }
 
-@defproc[(default-log-format [eff log-effect?]) string?]{
-  The default formatter for log messages. Formats the log entry with the current date (in ISO 8601 format), log level, and message as a string.
-}
-
-@defproc[(write-log [eff log-effect?] [display-proc (-> log-effect? void?) default-log-display] [format-proc (-> log-effect? string?) default-log-format]) free?]{
-  Writes a log message using customizable display and formatting functions.
+@defproc[(write-log [eff log-effect?] [display-proc (-> log-effect? void?) default-log-display]) void?]{
+  Writes a log message using a customizable display function.
   
   @itemlist[
     @item{@racket[eff]: The log effect to write.}
-    @item{@racket[display-proc]: A function that handles displaying the formatted log message (default: @racket[default-log-display]).}
-    @item{@racket[format-proc]: A function that formats the log effect into a string (default: @racket[default-log-format]).}
+    @item{@racket[display-proc]: A function that handles displaying the log message (default: @racket[default-log-display]).}
   ]
-  
-  If an exception occurs during logging, this function uses the @racket[fail-effect] to propagate the error message.
 
   @examples[#:eval log-eval
-    ;; Custom formatter that uses just the message without timestamp
-    (define (simple-format eff)
-      (format "[~a] ~a" (log-effect-level eff) (log-effect-message eff)))
+    (define (custom-display eff)
+      (displayln (format "[~a] ~a" (log-effect-level eff) (log-effect-message eff))))
     
     (run (log-info "Custom logging example")
          (lambda (eff k)
            (match eff
              [(log-effect level msg)
-              (k (write-log eff default-log-display simple-format))]
-             [(fail-effect msg)
-              (displayln (format "Logging failed: ~a" msg))
-              (return (void))])))
+              (write-log eff custom-display)
+              (k (void))])))  
   ]
 }
 

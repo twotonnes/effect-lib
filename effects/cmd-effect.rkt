@@ -13,8 +13,7 @@
   racket/system
   racket/exn
   racket/contract
-  "../freer-monad.rkt"
-  "fail-effect.rkt")
+  "../freer-monad.rkt")
 
 (struct cmd-effect (value) #:transparent)
 
@@ -25,8 +24,8 @@
   (perform (cmd-effect value)))
 
 (define/contract (execute-command value)
-  (-> string? free?)
-  (with-handlers ([exn:fail? (lambda (e) (fail (format "error running system command '~a': ~a" value (exn->string e))))])
+  (-> string? cmd-result?)
+  (with-handlers ([exn:fail? (lambda (e) (error (format "error running system command '~a': ~a" value (exn->string e))))])
       (match-define (list stdout stdin _ stderr control)
         (process* (find-cmd-path) "-Command" value))
 
@@ -42,7 +41,7 @@
 
       (if (false? exit-code)
           (error "command returned #f as exit code")
-          (return (cmd-result out err exit-code)))))
+          (cmd-result out err exit-code))))
 
 (define/contract (find-cmd-path)
   (-> path?)

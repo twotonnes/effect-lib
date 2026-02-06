@@ -41,23 +41,18 @@ This module provides effects for executing shell commands and capturing their ou
   ]
 }
 
-@defproc[(execute-command [command string?]) (or/c pure? impure?)]{
+@defproc[(execute-command [command string?]) cmd-result?]{
   The default implementation for executing commands. It attempts to run the @racket[command] string using the system's shell (specifically targeting PowerShell on Windows environments).
   
   @itemlist[
-    @item{@emph{Success}: Returns a @racket[pure] value containing a @racket[cmd-result].}
-    @item{@emph{Failure}: If a Racket exception occurs during execution (such as the shell not being found), this function catches the exception and uses the @racket[fail] effect to propagate the error message.}
+    @item{@emph{Success}: Returns a @racket[cmd-result] structure containing the output, error output, and exit code.}
+    @item{@emph{Failure}: If an error occurs during execution (such as the shell not being found), raises an exception with the error message.}
   ]
-
-  @bold{Error Handling}: When @racket[execute-command] encounters an error (e.g., shell not found, permission denied), it uses the @racket[fail-effect] to signal the error. Your computation handler must be prepared to handle the @racket[fail-effect].
 
   @examples[#:eval cmd-eval
     (run (check-status)
          (lambda (eff k)
            (match eff
-             [(cmd-effect c) (k (execute-command c))]
-             [(fail-effect msg)
-              (displayln (format "Command error: ~a" msg) (current-error-port))
-              (return (void))])))
+             [(cmd-effect c) (k (execute-command c))])))
   ]
 }

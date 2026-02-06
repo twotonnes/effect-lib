@@ -6,9 +6,7 @@
     log-debug
     log-info
     log-error
-    write-log
-    default-log-display
-    default-log-format)
+    write-log)
 
 
 (require
@@ -16,12 +14,10 @@
     racket/format
     racket/match
     racket/date
-    "../freer-monad.rkt"
-    "fail-effect.rkt")
+    "../freer-monad.rkt")
 
 
 (struct log-effect (level message) #:transparent)
-
 
 (define/contract (log level message . args)
     (->* (symbol? string?) () #:rest list? free?)
@@ -47,17 +43,19 @@
     (apply log 'ERROR message args))
 
 
-(define/contract (write-log eff [display-proc default-log-display] [format-proc default-log-format])
+(define/contract (write-log eff [display-proc default-log-display])
     (->* (log-effect?)
-         ((-> log-effect? void?) (-> log-effect? string?))
-         free?)
-    (with-handlers ([exn:fail? (lambda (exn) (fail (format "error handling log effect: ~s" (exn-message exn))))])
-        (return (display-proc eff))))
-
+         ((-> log-effect? void?))
+         void?)
+    (with-handlers ([exn:fail? (lambda (exn) (error (format "error handling log effect: ~s" (exn-message exn))))])
+        (display-proc eff)))
 
 (define/contract (default-log-display eff)
     (-> log-effect? void?)
-    (define formatted (default-log-format eff))
+    (define formatted (format "~a ~a :: ~a"
+                              (date->string (current-date) #t)
+                              (log-effect-level eff)
+                              (log-effect-message eff)))
     (match (log-effect-level eff)
         ['ERROR 
          (displayln formatted (current-error-port))
@@ -65,11 +63,3 @@
         [_ 
          (displayln formatted (current-output-port))
          (flush-output)]))
-
-
-(define/contract (default-log-format eff)
-    (-> log-effect? string?)
-    (format "~a ~a :: ~a"
-            (date->string (current-date) #t)
-            (log-effect-level eff)
-            (log-effect-message eff)))
