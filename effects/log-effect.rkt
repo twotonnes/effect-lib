@@ -3,9 +3,9 @@
 
 (provide
     log-effect
-    log-debug
-    log-info
-    log-error
+    log-dbg
+    log-inf
+    log-err
     write-log)
 
 
@@ -28,29 +28,29 @@
     (perform (log-effect level formatted-message)))
 
 
-(define/contract (log-debug message . args)
+(define/contract (log-dbg message . args)
     (->* (string?) () #:rest list? free?)
     (apply log 'DEBUG message args))
 
 
-(define/contract (log-info message . args)
+(define/contract (log-inf message . args)
     (->* (string?) () #:rest list? free?)
     (apply log 'INFO message args))
 
 
-(define/contract (log-error message . args)
+(define/contract (log-err message . args)
     (->* (string?) () #:rest list? free?)
     (apply log 'ERROR message args))
 
 
-(define/contract (write-log eff [display-proc default-log-display])
+(define/contract (write-log eff [display-proc default-log-dbgisplay])
     (->* (log-effect?)
          ((-> log-effect? void?))
          void?)
     (with-handlers ([exn:fail? (lambda (exn) (error (format "error handling log effect: ~s" (exn-message exn))))])
         (display-proc eff)))
 
-(define/contract (default-log-display eff)
+(define/contract (default-log-dbgisplay eff)
     (-> log-effect? void?)
     (define formatted (format "~a ~a :: ~a"
                               (date->string (current-date) #t)

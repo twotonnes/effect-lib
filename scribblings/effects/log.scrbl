@@ -2,7 +2,7 @@
 
 @(require
   scribble/eval
-  (for-label (rename-in racket [do r:do] [log-info r:log-info] [log-debug r:log-debug] [log-error r:log-error])
+  (for-label (rename-in racket [do r:do])
              freer-lib))
 
 @(define log-eval (make-base-eval))
@@ -23,34 +23,34 @@ This module provides effects for logging messages at different severity levels.
   ]
 }
 
-@defproc[(log-debug [message string?] [args any/c] ...) free?]{
+@defproc[(log-dbg [message string?] [args any/c] ...) free?]{
   Creates a logging effect that logs a @racket[message] at the DEBUG level. Supports format strings with additional arguments for formatting.
 
   @examples[#:eval log-eval
     (define (process-data)
-      (do [_ <- (log-debug "Starting data processing")]
+      (do [_ <- (log-dbg "Starting data processing")]
           [result <- (return 42)]
-          [_ <- (log-debug "Processing complete with result: ~a" result)]
+          [_ <- (log-dbg "Processing complete with result: ~a" result)]
           (return result)))
   ]
 }
 
-@defproc[(log-info [message string?] [args any/c] ...) free?]{
+@defproc[(log-inf [message string?] [args any/c] ...) free?]{
   Creates a logging effect that logs a @racket[message] at the INFO level. Supports format strings with additional arguments for formatting.
 
   @examples[#:eval log-eval
     (define (startup)
-      (do [_ <- (log-info "Application started")]
+      (do [_ <- (log-inf "Application started")]
           (return (void))))
   ]
 }
 
-@defproc[(log-error [message string?] [args any/c] ...) free?]{
+@defproc[(log-err [message string?] [args any/c] ...) free?]{
   Creates a logging effect that logs a @racket[message] at the ERROR level. Supports format strings with additional arguments for formatting.
 
   @examples[#:eval log-eval
     (define (handle-failure)
-      (do [_ <- (log-error "Critical failure occurred")]
+      (do [_ <- (log-err "Critical failure occurred")]
           (return (void))))
   ]
 }
@@ -71,7 +71,7 @@ This module provides effects for logging messages at different severity levels.
     (define (custom-display eff)
       (displayln (format "[~a] ~a" (log-effect-level eff) (log-effect-message eff))))
     
-    (run (log-info "Custom logging example")
+    (run (log-inf "Custom logging example")
          (lambda (eff k)
            (match eff
              [(log-effect level msg)
