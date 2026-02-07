@@ -2,7 +2,7 @@
 
 
 (provide
-    log-effect
+    (struct-out log-effect)
     log-dbg
     log-inf
     log-err
