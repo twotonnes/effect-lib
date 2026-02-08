@@ -14,6 +14,7 @@
     racket/format
     racket/match
     racket/date
+    gregor
     "../freer-monad.rkt")
 
 
@@ -43,17 +44,17 @@
     (apply log 'ERROR message args))
 
 
-(define/contract (write-log eff [display-proc default-log-dbgisplay])
+(define/contract (write-log eff [display-proc default-log-display])
     (->* (log-effect?)
          ((-> log-effect? void?))
          void?)
     (with-handlers ([exn:fail? (lambda (exn) (error (format "error handling log effect: ~s" (exn-message exn))))])
         (display-proc eff)))
 
-(define/contract (default-log-dbgisplay eff)
+(define/contract (default-log-display eff)
     (-> log-effect? void?)
-    (define formatted (format "~a ~a :: ~a"
-                              (date->string (current-date) #t)
+    (define formatted (format "[~a] ~a :: ~a"
+                              (moment->iso8601 (now/moment/utc))
                               (log-effect-level eff)
                               (log-effect-message eff)))
     (match (log-effect-level eff)
