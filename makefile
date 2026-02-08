@@ -1,7 +1,7 @@
 .PHONY: compile test install docs clean build
 
 compile:
-	raco make main.rkt
+	raco make -j 8 main.rkt
 
 test: clean
 	raco test -j 8 .
